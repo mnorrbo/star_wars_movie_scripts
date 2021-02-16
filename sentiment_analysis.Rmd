@@ -1,0 +1,142 @@
+---
+title: "Sentiment Analysis of Star Wars (4-6) Movie Scripts"
+output:
+  pdf_document:
+    toc: true
+    number_sections: true
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F)
+```
+
+# Dependencies
+
+```{r}
+library(tidyverse)
+library(tidytext)
+```
+
+# Reading in clean data
+
+```{r}
+sw_scripts <- read_csv("clean_data/original_sw_trilogy.csv")
+```
+
+# Tokenize and remove stop words
+
+I will use single words as my token as I am interested in the sentiments of words.
+```{r}
+sw_tokens <- sw_scripts %>%
+  unnest_tokens(
+    word,
+    dialogue
+  ) %>%
+  anti_join(stop_words)
+
+sw_tokens
+```
+
+# Check which sentiment lexicon categorizes most words
+
+Before analysing the sentiment of the text, I want to check which lexicon is able to categorise/rate most words.
+
+Available lexicons in `tidytext::get_gentiments()`:
+
+* __Bing__
+  * 2 categories: positive or negative
+* __AFINN__
+  * 11 ratings: integer between -5 (negative) and +5 (positive)
+* __Loughran__
+  * 6 ratings: negative, positive, litigious, uncertainty, constraining, or superfluous 
+* __NRC__
+  * 10 categories: 8 basic emotions (anger, fear, anticipation, trust, surprise, sadness, joy, or disgust) and 2 sentiments (negative or positive)
+  
+```{r}
+unique_words <- sw_tokens %>% distinct(word)
+
+# available lexicons in tidytext::get_sentiments()
+lexicons <- c("bing", "afinn", "loughran", "nrc")
+
+# create list of joined datasets with available lexicons
+nested_df <- lexicons %>%
+  map(~left_join(unique_words, get_sentiments(.), by = "word"))
+
+# attach lexicon names to list
+names(nested_df) <- lexicons 
+
+
+for (lexicon in lexicons){
+
+  # 2nd element is sentiment category or rating
+  sentiments <- nested_df[[lexicon]][[2]]
+  
+  # count all values without attached sentiment
+  missing <- sum(is.na(sentiments)) 
+  
+  print(str_glue("{lexicon}: {missing} uncategorised words"))
+
+}
+```
+
+Seems like the NRC lexicon is able to categorise most words, so I will use it for my sentiment analysis.
+
+# Visualisations of sentiments
+
+## Set theme for all plots
+
+```{r}
+theme_set(theme_minimal() + 
+            theme(
+              strip.text = element_text(size = 10, face = "bold"),
+              axis.text = element_text(size = 8, face = "bold"),
+              axis.title = element_text(size = 12, face = "bold")
+              )
+          )
+```
+
+## Create dataset with all NRC-categorised script words
+
+```{r}
+sw_sentiments <- sw_tokens %>% 
+  inner_join(get_sentiments("nrc"), by = "word")
+```
+
+
+```{r}
+
+# NEED TO ACCOUNT FOR HOW MUCH CHARACTERS SPEAK
+# TAKE TOP 20? SPEAKING CHARACTERS AND CALCULATE PERCENTAGES?
+
+
+sw_sentiments %>% 
+  filter(!(sentiment %in% c("positive", "negative"))) %>% 
+  group_by(character, sentiment) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  arrange(desc(count)) %>% 
+  group_by(sentiment) %>% 
+  slice_max(count, n = 5) %>% 
+  mutate(is_max_count = count == max(count),
+         character = recode(character, Threepio = "C-3PO")) %>% 
+  ggplot(aes(
+    x = reorder_within(character, -count, sentiment), 
+    y = count,
+    fill = is_max_count
+    )) +
+  geom_col() +
+  scale_fill_manual(
+    values = c(`TRUE` = "red", `FALSE` = "grey50"), guide = F) +
+  labs(
+    x = NULL,
+    y = "Number of words",
+    title = "Emotions expressed by Star Wars characters",
+    subtitle = "Data from the original trilogy (Episodes 4-6)"
+  ) +
+  facet_wrap(~sentiment, scales = "free_x", dir = "v") +
+  scale_x_reordered()
+
+```
+
+
