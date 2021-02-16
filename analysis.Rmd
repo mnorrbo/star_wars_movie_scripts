@@ -1,0 +1,38 @@
+---
+title: "Star Wars (4-6) Text Analysis of Movie Scripts"
+output:
+  pdf_document:
+    toc: true
+    number_sections: true
+    df_print: paged
+---
+
+# Dependencies
+
+```{r, warning = F, message = F}
+library(tidyverse)
+library(tidytext)
+
+```
+# Tokenize and remove stop words
+```{r}
+# sw_tokens <- sw_trilogy %>% 
+#   unnest_tokens(
+#     word,
+#     dialogue
+#   ) %>%
+#   anti_join(stop_words)
+# 
+# sw_tokens
+```
+
+```{r}
+# lexicons <- c("bing", "afinn", "loughran", "nrc") 
+# 
+# df <- tibble(sentiments = lexicons %>% map(~left_join(sw_tokens, get_sentiments(.), by = "word")))
+# 
+# for (lexicon in 1:nrow(df)){
+#   print(sum(is.na(df[[1]][[lexicon]][5])))
+# }
+```
+
