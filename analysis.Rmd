@@ -7,32 +7,51 @@ output:
     df_print: paged
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F)
+```
+
 # Dependencies
 
-```{r, warning = F, message = F}
+```{r}
 library(tidyverse)
 library(tidytext)
-
 ```
+
+# Reading in clean data
+
+```{r}
+sw_scripts <- read_csv("clean_data/original_sw_trilogy.csv")
+```
+
 # Tokenize and remove stop words
-```{r}
-# sw_tokens <- sw_trilogy %>% 
-#   unnest_tokens(
-#     word,
-#     dialogue
-#   ) %>%
-#   anti_join(stop_words)
-# 
-# sw_tokens
-```
 
 ```{r}
-# lexicons <- c("bing", "afinn", "loughran", "nrc") 
-# 
-# df <- tibble(sentiments = lexicons %>% map(~left_join(sw_tokens, get_sentiments(.), by = "word")))
-# 
-# for (lexicon in 1:nrow(df)){
-#   print(sum(is.na(df[[1]][[lexicon]][5])))
-# }
+sw_tokens <- sw_scripts %>%
+  unnest_tokens(
+    word,
+    dialogue
+  ) %>%
+  anti_join(stop_words)
+
+sw_tokens
+```
+
+# Check which sentiment lexicon categorizes most words
+
+```{r}
+lexicons <- c("bing", "afinn", "loughran", "nrc")
+
+df <-lexicons %>%
+    map(~left_join(sw_tokens, get_sentiments(.), by = "word")) 
+
+names(df) <- lexicons
+
+
+for (lexicon in lexicons){
+  missing <- sum(is.na(df[[lexicon]][[5]]))
+  print(str_glue("The lexicon {lexicon} has {missing} uncategorised words"))
+}
+
 ```
 
