@@ -103,6 +103,7 @@ sw_sentiments <- sw_tokens %>%
   inner_join(get_sentiments("nrc"), by = "word")
 ```
 
+## Sentiment words spoken by characters
 
 ```{r}
 
@@ -139,4 +140,27 @@ sw_sentiments %>%
 
 ```
 
+# Sentiment arcs
 
+```{r}
+sw_tokens %>% 
+  inner_join(get_sentiments("afinn")) %>% 
+  group_by(episode) %>% 
+  mutate(
+    word_n = row_number()
+  ) %>%
+  mutate(
+    story_position = word_n/max(word_n) # all books on scale from 0 to 1
+  ) %>% 
+  mutate(episode = as.character(episode),
+         episode = recode(episode, 
+                          "4" = "Episode IV: A New Hope",
+                          "5" = "Episode V: The Empire Strikes Back",
+                          "6" = "Episode VI: Return of the Jedi")) %>% 
+  ggplot() +
+  aes(x = story_position, y = value) +
+  geom_smooth(se = FALSE) +
+  facet_wrap(~episode, ncol = 1) +
+  ylim(-5, 5)
+
+```
