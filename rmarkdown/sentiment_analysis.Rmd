@@ -1,10 +1,10 @@
 ---
 title: "Sentiment Analysis of Star Wars (4-6) Movie Scripts"
 output:
-  pdf_document:
+  html_document:
     toc: true
-    number_sections: true
-    df_print: paged
+    toc_float: true
+    theme: journal
 ---
 
 ```{r setup, include=FALSE}
@@ -21,7 +21,7 @@ library(tidytext)
 # Reading in clean data
 
 ```{r}
-sw_scripts <- read_csv("clean_data/original_sw_trilogy.csv")
+sw_scripts <- read_csv("../clean_data/original_sw_trilogy.csv")
 ```
 
 # Tokenize and remove stop words
@@ -82,7 +82,7 @@ for (lexicon in lexicons){
 
 Seems like the NRC lexicon is able to categorise most words, so I will use it for my sentiment analysis.
 
-# Visualisations of sentiments
+# Which character expresses the most sentiment
 
 ## Set theme for all plots
 
@@ -107,8 +107,8 @@ sw_sentiments <- sw_tokens %>%
 
 ```{r}
 
-# NEED TO ACCOUNT FOR HOW MUCH CHARACTERS SPEAK
-# TAKE TOP 20? SPEAKING CHARACTERS AND CALCULATE PERCENTAGES?
+# need to account for how much characters speak in general
+# select top 20 speaking characters and calculate percentage?
 
 
 sw_sentiments %>% 
@@ -128,7 +128,7 @@ sw_sentiments %>%
     )) +
   geom_col() +
   scale_fill_manual(
-    values = c(`TRUE` = "red", `FALSE` = "grey50"), guide = F) +
+    values = c(`TRUE` = "#4074AD", `FALSE` = "grey70"), guide = F) +
   labs(
     x = NULL,
     y = "Number of words",
@@ -158,9 +158,15 @@ sw_tokens %>%
                           "5" = "Episode V: The Empire Strikes Back",
                           "6" = "Episode VI: Return of the Jedi")) %>% 
   ggplot() +
-  aes(x = story_position, y = value) +
+  aes(x = story_position, y = value, colour = episode) +
   geom_smooth(se = FALSE) +
   facet_wrap(~episode, ncol = 1) +
-  coord_cartesian(ylim = c(-3, 3))
+  coord_cartesian(ylim = c(-3, 3)) +
+  scale_colour_manual(values = c("#248AD2",
+                               "#6A8FBB",
+                               "#4074AD"),
+                    guide = "none") +
+  labs(x = "Story progression",
+       y = "Sentiment rating")
 
 ```
