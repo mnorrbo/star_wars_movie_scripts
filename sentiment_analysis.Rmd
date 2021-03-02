@@ -161,6 +161,6 @@ sw_tokens %>%
   aes(x = story_position, y = value) +
   geom_smooth(se = FALSE) +
   facet_wrap(~episode, ncol = 1) +
-  ylim(-5, 5)
+  coord_cartesian(ylim = c(-3, 3))
 
 ```

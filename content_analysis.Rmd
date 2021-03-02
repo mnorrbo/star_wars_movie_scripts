@@ -1,0 +1,83 @@
+---
+title: "Content Analysis of Star Wars (4-6) Movie Scripts"
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  pdf_document:
+    toc: yes
+    number_sections: yes
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, warning = F, message = F)
+```
+
+# Dependencies
+
+```{r}
+library(tidyverse)
+library(tidytext)
+```
+
+# Reading in clean data
+
+```{r}
+sw_scripts <- read_csv("clean_data/original_sw_trilogy.csv")
+```
+
+# Set theme
+
+```{r}
+theme_set(theme_minimal() + 
+            theme(
+              strip.text = element_text(size = 10, face = "bold"),
+              axis.text = element_text(size = 8, face = "bold"),
+              axis.title = element_text(size = 12, face = "bold")
+              )
+          )
+```
+
+
+# Plot
+```{r}
+episode_tfidf_words <- sw_scripts %>%
+  unnest_tokens(
+    word,
+    dialogue 
+  ) %>% 
+  count(
+    episode, 
+    word, 
+    sort = T
+    ) %>% 
+  bind_tf_idf(
+    word,
+    episode,
+    n
+    ) %>% 
+  group_by(episode) %>% 
+  slice_max(tf_idf, n = 10, with_ties = F) %>% 
+  select(episode, word, n, tf_idf) %>%
+  mutate(tf_idf = round(tf_idf, 4)) %>% 
+  mutate(episode = as.character(episode),
+         episode = recode(episode, 
+                          "4" = "Episode IV: A New Hope",
+                          "5" = "Episode V: The Empire Strikes Back",
+                          "6" = "Episode VI: Return of the Jedi"))
+
+episode_tfidf_words %>% 
+  ggplot() +
+  aes(x = reorder_within(word, -tf_idf, episode), y = tf_idf, fill = episode) +
+  geom_col() +
+  facet_wrap(~episode, scales = "free_x", ncol = 1) +
+  scale_x_reordered() +
+  labs(x = NULL,
+       y = "TF-IDF score") +
+  scale_fill_manual(values = c("#248AD2",
+                               "#6A8FBB",
+                               "#4074AD"),
+                    guide = "none")
+```
+
