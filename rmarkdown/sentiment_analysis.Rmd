@@ -91,7 +91,8 @@ theme_set(theme_minimal() +
             theme(
               strip.text = element_text(size = 10, face = "bold"),
               axis.text = element_text(size = 8, face = "bold"),
-              axis.title = element_text(size = 12, face = "bold")
+              axis.title = element_text(size = 12, face = "bold"),
+              plot.title = element_text(size = 15, face = "bold")
               )
           )
 ```
@@ -106,7 +107,6 @@ sw_sentiments <- sw_tokens %>%
 ## Sentiment words spoken by characters
 
 ```{r}
-
 # need to account for how much characters speak in general
 # select top 20 speaking characters and calculate percentage?
 
@@ -132,12 +132,21 @@ sw_sentiments %>%
   labs(
     x = NULL,
     y = "Number of words",
-    title = "Emotions expressed by Star Wars characters",
-    subtitle = "Data from the original trilogy (Episodes 4-6)"
+    title = "Emotions expressed by Star Wars characters (Ep 4-6)",
+    subtitle = "Top 5 characters using NRC sentiment words"
   ) +
   facet_wrap(~sentiment, scales = "free_x", dir = "v") +
   scale_x_reordered()
+```
 
+
+```{r, echo = F, include = F}
+ggsave(filename="../plots/sentiment_words.png", 
+       device="png", 
+       height=5, 
+       width=8, 
+       units="in", 
+       dpi=500)
 ```
 
 # Sentiment arcs
@@ -167,6 +176,21 @@ sw_tokens %>%
                                "#4074AD"),
                     guide = "none") +
   labs(x = "Story progression",
-       y = "Sentiment rating")
+       y = "Sentiment rating") +
+  labs(
+    x = NULL,
+    y = "Sentiment rating",
+    title = "Sentiment arcs of original Star Wars trilogy",
+    subtitle = "Sentiment ratings from AFINN lexicon"
+  )
 
+```
+
+```{r, echo = F, include = F}
+ggsave(filename="../plots/sentiment_arcs.png", 
+       device="png", 
+       height=5, 
+       width=8, 
+       units="in", 
+       dpi=500)
 ```
